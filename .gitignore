@@ -1,0 +1,10 @@
+/.idea
+/.vscode
+/.zed
+/.nova
+/.cursor
+/.codex
+/.fleet
+*.iml
+.DS_Store
+Thumbs.db
