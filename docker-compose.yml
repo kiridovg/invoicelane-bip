@@ -1,0 +1,83 @@
+name: invoicelane
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: invoicelane
+      POSTGRES_USER: invoicelane
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invoicelane -d invoicelane"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  api-deps:
+    image: composer:2
+    working_dir: /app
+    volumes:
+      - ./apps/api:/app
+    command: install --no-interaction --prefer-dist --no-scripts
+
+  api:
+    image: dunglas/frankenphp:1.4-php8.4-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/api:/app
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: invoicelane
+      DB_USERNAME: invoicelane
+      DB_PASSWORD: secret
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      api-deps:
+        condition: service_completed_successfully
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        install-php-extensions pdo_pgsql bcmath intl zip
+        [ -f .env ] || cp .env.example .env
+        grep -q '^APP_KEY=base64:' .env || php artisan key:generate --force
+        php artisan migrate --force --seed
+        exec frankenphp run --config /app/docker/Caddyfile
+
+  web:
+    image: node:24-alpine
+    working_dir: /app
+    volumes:
+      - ./apps/web:/app
+      - web_modules:/app/node_modules
+    environment:
+      NUXT_API_INTERNAL_URL: http://api:8000
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        set -e
+        corepack enable pnpm
+        pnpm install
+        exec pnpm dev
+
+volumes:
+  dbdata:
+  web_modules:
