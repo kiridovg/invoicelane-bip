@@ -68,7 +68,7 @@ Single invoice response:
 - **Only invoices in `pending` status can be edited.** Attempting to modify an `approved` or `rejected` one returns `409 Conflict` with the same body shape as a validation error, so the frontend handles both through one code path.
 - **`gross_amount` is always computed server-side** by the `Money` value object, which keeps amounts as strings and adds them with bcmath. The client never sends it, so the two cannot drift apart, and no float rounding can lose a cent against the `invoices_gross_consistent` constraint.
 - **`due_date` cannot precede `issue_date`.** The rule is stated once, by the `InvoicePeriod` value object, which cannot be constructed with the dates in the wrong order — creation checks the two dates in the payload, an update checks the new one against the issue date already stored. The FormRequests validate shape only; the failure still reaches the client as `422` on the `due_date` field.
-- Amounts are strings with at most two decimal places: `net_amount > 0`, `vat_amount >= 0`.
+- Amounts are strings with at most two decimal places: `net_amount > 0`, `vat_amount >= 0`. The currency code is stored upper-cased, so `uah` and `UAH` cannot end up as two different currencies in the table.
 - **List query parameters are validated, not coerced.** `per_page` outside `1…100`, a non-integer `page`, or a `status` outside the enum returns `422` instead of being silently clamped or ignored — a filter that did not apply is worse than an error, because the client cannot tell.
 
 The same invariants are mirrored as PostgreSQL `CHECK` constraints (`invoices_net_positive`, `invoices_vat_non_negative`, `invoices_gross_consistent`, `invoices_dates_ordered`) — application validation can be bypassed, database constraints cannot.

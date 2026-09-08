@@ -1,11 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\ValueObjects;
 
 use InvalidArgumentException;
 
+/**
+ * An exact decimal amount tied to a currency.
+ *
+ * Amounts are kept as strings and combined with bcmath: floats cannot
+ * represent 0.1 exactly, and a single lost cent breaks the
+ * invoices_gross_consistent constraint in the database.
+ */
 final readonly class Money
 {
     private const SCALE = 2;
@@ -24,48 +29,17 @@ final readonly class Money
             );
         }
 
-        return new self(self::normalize($amount), $currency);
+        return new self(bcadd($amount, '0', self::SCALE), strtoupper($currency));
     }
 
     public function add(self $other): self
-    {
-        $this->assertSameCurrency($other);
-
-        return new self(bcadd($this->amount, $other->amount, self::SCALE), $this->currency);
-    }
-
-    public function equals(self $other): bool
-    {
-        return $this->currency === $other->currency
-            && bccomp($this->amount, $other->amount, self::SCALE) === 0;
-    }
-
-    public function isPositive(): bool
-    {
-        return bccomp($this->amount, '0', self::SCALE) === 1;
-    }
-
-    public function isNegative(): bool
-    {
-        return bccomp($this->amount, '0', self::SCALE) === -1;
-    }
-
-    public function __toString(): string
-    {
-        return $this->amount;
-    }
-
-    private static function normalize(string $amount): string
-    {
-        return bcadd($amount, '0', self::SCALE);
-    }
-
-    private function assertSameCurrency(self $other): void
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
                 sprintf('Cannot combine %s with %s.', $this->currency, $other->currency)
             );
         }
+
+        return new self(bcadd($this->amount, $other->amount, self::SCALE), $this->currency);
     }
 }

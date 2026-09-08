@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
 use App\DataTransferObjects\CreateInvoiceData;
@@ -41,7 +39,7 @@ final class InvoiceService
             'net_amount'      => $net->amount,
             'vat_amount'      => $vat->amount,
             'gross_amount'    => $net->add($vat)->amount,
-            'currency'        => $data->currency,
+            'currency'        => $net->currency,
             'status'          => InvoiceStatus::Pending,
             'issue_date'      => $period->issueDate,
             'due_date'        => $period->dueDate,
