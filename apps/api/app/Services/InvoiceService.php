@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\DataTransferObjects\CreateInvoiceData;
+use App\DataTransferObjects\InvoiceListQuery;
 use App\DataTransferObjects\UpdateInvoiceData;
 use App\Enums\InvoiceStatus;
 use App\Exceptions\InvoiceNotEditableException;
@@ -15,12 +16,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 final class InvoiceService
 {
     /** @return LengthAwarePaginator<int, Invoice> */
-    public function list(?InvoiceStatus $status, int $perPage): LengthAwarePaginator
+    public function list(InvoiceListQuery $query): LengthAwarePaginator
     {
         return Invoice::query()
-            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($query->status, fn ($builder) => $builder->where('status', $query->status))
             ->orderByDesc('created_at')
-            ->paginate($perPage)
+            ->paginate($query->perPage)
             ->withQueryString();
     }
 

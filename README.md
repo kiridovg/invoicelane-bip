@@ -35,7 +35,7 @@ docker compose exec db psql -U invoicelane -d invoicelane  # database console
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/invoices` | list; accepts `page`, `per_page` (default 20, capped at 100), `status` |
+| `GET` | `/api/invoices` | list; accepts `page`, `per_page` (default 20, max 100), `status` |
 | `GET` | `/api/invoices/{id}` | single invoice |
 | `POST` | `/api/invoices` | create |
 | `PUT` | `/api/invoices/{id}` | update |
@@ -69,6 +69,7 @@ Single invoice response:
 - **`gross_amount` is always computed server-side** by the `Money` value object, which keeps amounts as strings and adds them with bcmath. The client never sends it, so the two cannot drift apart, and no float rounding can lose a cent against the `invoices_gross_consistent` constraint.
 - **`due_date` cannot precede `issue_date`.** Updates do not carry the issue date, so the rule is checked against the value already stored in the database.
 - Amounts are strings with at most two decimal places: `net_amount > 0`, `vat_amount >= 0`.
+- **List query parameters are validated, not coerced.** `per_page` outside `1…100`, a non-integer `page`, or a `status` outside the enum returns `422` instead of being silently clamped or ignored — a filter that did not apply is worse than an error, because the client cannot tell.
 
 The same invariants are mirrored as PostgreSQL `CHECK` constraints (`invoices_net_positive`, `invoices_vat_non_negative`, `invoices_gross_consistent`, `invoices_dates_ordered`) — application validation can be bypassed, database constraints cannot.
 
@@ -89,7 +90,7 @@ The controller stays thin: a FormRequest validates the input, `InvoiceService` h
 
 DTOs — `CreateInvoiceData` / `UpdateInvoiceData` — are built from validated input via `fromArray()` and carry data across the layers. They deliberately know nothing about `App\Http`, so the same service can be driven from a console command, a queued job or a test.
 
-The edit restriction is expressed as `InvoiceNotEditableException` with its own `render()`, so the rule lives in one place instead of spreading across controllers.
+The edit restriction is expressed as `InvoiceNotEditableException`, which carries the offending status and nothing else — no HTTP status code, no response body. Turning it into `409 Conflict` is the delivery layer's job and happens once, in `bootstrap/app.php`, so the same exception can surface as a console message or a queue failure without dragging a JSON response along.
 
 ### Frontend
 
