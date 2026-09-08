@@ -16,9 +16,9 @@ class IndexInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page'     => ['sometimes', 'integer', 'min:1'],
+            'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'status'   => ['sometimes', 'nullable', Rule::enum(InvoiceStatus::class)],
+            'status' => ['sometimes', 'nullable', Rule::enum(InvoiceStatus::class)],
         ];
     }
 }

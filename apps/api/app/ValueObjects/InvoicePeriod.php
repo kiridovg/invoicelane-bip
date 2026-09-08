@@ -11,14 +11,13 @@ final readonly class InvoicePeriod
     private function __construct(
         public CarbonImmutable $issueDate,
         public CarbonImmutable $dueDate,
-    ) {
-    }
+    ) {}
 
     /** @throws DueDateBeforeIssueDateException */
     public static function of(CarbonInterface $issueDate, CarbonInterface $dueDate): self
     {
         $issue = CarbonImmutable::instance($issueDate)->startOfDay();
-        $due   = CarbonImmutable::instance($dueDate)->startOfDay();
+        $due = CarbonImmutable::instance($dueDate)->startOfDay();
 
         if ($due->lt($issue)) {
             throw new DueDateBeforeIssueDateException($issue, $due);

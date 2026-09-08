@@ -25,11 +25,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(fn (InvoiceNotEditableException $e) => response()->json([
             'message' => $e->getMessage(),
-            'errors'  => ['status' => [$e->getMessage()]],
+            'errors' => ['status' => [$e->getMessage()]],
         ], Response::HTTP_CONFLICT));
 
         $exceptions->render(fn (DueDateBeforeIssueDateException $e) => response()->json([
             'message' => $e->getMessage(),
-            'errors'  => ['due_date' => [$e->getMessage()]],
+            'errors' => ['due_date' => [$e->getMessage()]],
         ], Response::HTTP_UNPROCESSABLE_ENTITY));
     })->create();

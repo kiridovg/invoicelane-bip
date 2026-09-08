@@ -28,21 +28,21 @@ final class InvoiceService
     /** @throws DueDateBeforeIssueDateException */
     public function create(CreateInvoiceData $data): Invoice
     {
-        $net    = Money::of($data->netAmount, $data->currency);
-        $vat    = Money::of($data->vatAmount, $data->currency);
+        $net = Money::of($data->netAmount, $data->currency);
+        $vat = Money::of($data->vatAmount, $data->currency);
         $period = InvoicePeriod::of($data->issueDate, $data->dueDate);
 
         $invoice = new Invoice([
-            'number'          => $data->number,
-            'supplier_name'   => $data->supplierName,
+            'number' => $data->number,
+            'supplier_name' => $data->supplierName,
             'supplier_tax_id' => $data->supplierTaxId,
-            'net_amount'      => $net->amount,
-            'vat_amount'      => $vat->amount,
-            'gross_amount'    => $net->add($vat)->amount,
-            'currency'        => $net->currency,
-            'status'          => InvoiceStatus::Pending,
-            'issue_date'      => $period->issueDate,
-            'due_date'        => $period->dueDate,
+            'net_amount' => $net->amount,
+            'vat_amount' => $vat->amount,
+            'gross_amount' => $net->add($vat)->amount,
+            'currency' => $net->currency,
+            'status' => InvoiceStatus::Pending,
+            'issue_date' => $period->issueDate,
+            'due_date' => $period->dueDate,
         ]);
 
         $invoice->save();
@@ -57,15 +57,15 @@ final class InvoiceService
             throw new InvoiceNotEditableException($invoice->status);
         }
 
-        $net    = Money::of($data->netAmount, $invoice->currency);
-        $vat    = Money::of($data->vatAmount, $invoice->currency);
+        $net = Money::of($data->netAmount, $invoice->currency);
+        $vat = Money::of($data->vatAmount, $invoice->currency);
         $period = InvoicePeriod::of($invoice->issue_date, $data->dueDate);
 
         $invoice->fill([
-            'net_amount'   => $net->amount,
-            'vat_amount'   => $vat->amount,
+            'net_amount' => $net->amount,
+            'vat_amount' => $vat->amount,
             'gross_amount' => $net->add($vat)->amount,
-            'due_date'     => $period->dueDate,
+            'due_date' => $period->dueDate,
         ]);
 
         $invoice->save();

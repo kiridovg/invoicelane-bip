@@ -11,16 +11,15 @@ final readonly class InvoiceListQuery
     public function __construct(
         public ?InvoiceStatus $status,
         public int $perPage,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public static function fromArray(array $payload): self
     {
         return new self(
-            status:  isset($payload['status']) ? InvoiceStatus::from((string) $payload['status']) : null,
+            status: isset($payload['status']) ? InvoiceStatus::from((string) $payload['status']) : null,
             perPage: (int) ($payload['per_page'] ?? self::DEFAULT_PER_PAGE),
         );
     }

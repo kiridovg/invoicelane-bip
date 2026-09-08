@@ -18,8 +18,7 @@ final readonly class Money
     private function __construct(
         public string $amount,
         public string $currency,
-    ) {
-    }
+    ) {}
 
     public static function of(string $amount, string $currency): self
     {

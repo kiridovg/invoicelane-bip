@@ -16,7 +16,7 @@ class UpdateInvoiceRequest extends FormRequest
         return [
             'net_amount' => ['required', 'numeric', 'gt:0', 'decimal:0,2'],
             'vat_amount' => ['required', 'numeric', 'gte:0', 'decimal:0,2'],
-            'due_date'   => ['required', 'date'],
+            'due_date' => ['required', 'date'],
         ];
     }
 }

@@ -18,9 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private readonly InvoiceService $invoices)
-    {
-    }
+    public function __construct(private readonly InvoiceService $invoices) {}
 
     public function index(IndexInvoiceRequest $request): AnonymousResourceCollection
     {

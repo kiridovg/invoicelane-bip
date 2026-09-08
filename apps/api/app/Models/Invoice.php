@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    /** @use HasFactory<\Database\Factories\InvoiceFactory> */
+    /** @use HasFactory<InvoiceFactory> */
     use HasFactory, HasUuids;
 
     protected $fillable = [
@@ -21,12 +22,12 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'net_amount'   => 'decimal:2',
-            'vat_amount'   => 'decimal:2',
+            'net_amount' => 'decimal:2',
+            'vat_amount' => 'decimal:2',
             'gross_amount' => 'decimal:2',
-            'issue_date'   => 'date',
-            'due_date'     => 'date',
-            'status'       => InvoiceStatus::class,
+            'issue_date' => 'date',
+            'due_date' => 'date',
+            'status' => InvoiceStatus::class,
         ];
     }
 
