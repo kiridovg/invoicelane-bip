@@ -9,42 +9,42 @@ use App\DataTransferObjects\UpdateInvoiceData;
 use App\Enums\InvoiceStatus;
 use App\Exceptions\InvoiceNotEditableException;
 use App\Models\Invoice;
-use App\Repositories\InvoiceRepository;
+use App\ValueObjects\Money;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class InvoiceService
 {
-    public function __construct(private readonly InvoiceRepository $invoices)
-    {
-    }
-
     /** @return LengthAwarePaginator<int, Invoice> */
     public function list(?InvoiceStatus $status, int $perPage): LengthAwarePaginator
     {
-        return $this->invoices->paginateLatest($status, $perPage);
-    }
-
-    public function calculateGross(string $net, string $vat): string
-    {
-        return bcadd($net, $vat, 2);
+        return Invoice::query()
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->orderByDesc('created_at')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function create(CreateInvoiceData $data): Invoice
     {
+        $net = Money::of($data->netAmount, $data->currency);
+        $vat = Money::of($data->vatAmount, $data->currency);
+
         $invoice = new Invoice([
             'number'          => $data->number,
             'supplier_name'   => $data->supplierName,
             'supplier_tax_id' => $data->supplierTaxId,
-            'net_amount'      => $data->netAmount,
-            'vat_amount'      => $data->vatAmount,
-            'gross_amount'    => $this->calculateGross($data->netAmount, $data->vatAmount),
+            'net_amount'      => $net->amount,
+            'vat_amount'      => $vat->amount,
+            'gross_amount'    => $net->add($vat)->amount,
             'currency'        => $data->currency,
             'status'          => InvoiceStatus::Pending,
             'issue_date'      => $data->issueDate,
             'due_date'        => $data->dueDate,
         ]);
 
-        return $this->invoices->persist($invoice);
+        $invoice->save();
+
+        return $invoice;
     }
 
     /** @throws InvoiceNotEditableException */
@@ -54,13 +54,18 @@ final class InvoiceService
             throw new InvoiceNotEditableException($invoice->status);
         }
 
+        $net = Money::of($data->netAmount, $invoice->currency);
+        $vat = Money::of($data->vatAmount, $invoice->currency);
+
         $invoice->fill([
-            'net_amount'   => $data->netAmount,
-            'vat_amount'   => $data->vatAmount,
-            'gross_amount' => $this->calculateGross($data->netAmount, $data->vatAmount),
+            'net_amount'   => $net->amount,
+            'vat_amount'   => $vat->amount,
+            'gross_amount' => $net->add($vat)->amount,
             'due_date'     => $data->dueDate,
         ]);
 
-        return $this->invoices->persist($invoice);
+        $invoice->save();
+
+        return $invoice;
     }
 }

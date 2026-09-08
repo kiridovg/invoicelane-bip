@@ -66,7 +66,7 @@ Single invoice response:
 ### Rules
 
 - **Only invoices in `pending` status can be edited.** Attempting to modify an `approved` or `rejected` one returns `409 Conflict` with the same body shape as a validation error, so the frontend handles both through one code path.
-- **`gross_amount` is always computed server-side** — `bcadd(net, vat, 2)`. The client never sends it, so the two cannot drift apart.
+- **`gross_amount` is always computed server-side** by the `Money` value object, which keeps amounts as strings and adds them with bcmath. The client never sends it, so the two cannot drift apart, and no float rounding can lose a cent against the `invoices_gross_consistent` constraint.
 - **`due_date` cannot precede `issue_date`.** Updates do not carry the issue date, so the rule is checked against the value already stored in the database.
 - Amounts are strings with at most two decimal places: `net_amount > 0`, `vat_amount >= 0`.
 
@@ -83,7 +83,11 @@ apps/web    Nuxt — user interface
 
 ### Backend
 
-The controller stays thin: it parses the request and returns a resource. Business logic lives in `InvoiceService`, data access sits behind the `InvoiceRepository` interface (implemented by `EloquentInvoiceRepository`, bound in `AppServiceProvider`). DTOs — `CreateInvoiceData` / `UpdateInvoiceData` — carry data between the layers.
+The controller stays thin: a FormRequest validates the input, `InvoiceService` holds the business rules, and an `InvoiceResource` shapes the response.
+
+`InvoiceService` talks to Eloquent directly. A repository interface was tried and removed: over a single Eloquent model it can only accept and return Eloquent models, so it cannot actually be reimplemented on another persistence layer — it adds indirection without buying substitutability. The abstraction becomes worth its cost once a second data source or a non-Eloquent domain entity appears; until then the query lives where it is used.
+
+DTOs — `CreateInvoiceData` / `UpdateInvoiceData` — are built from validated input via `fromArray()` and carry data across the layers. They deliberately know nothing about `App\Http`, so the same service can be driven from a console command, a queued job or a test.
 
 The edit restriction is expressed as `InvoiceNotEditableException` with its own `render()`, so the rule lives in one place instead of spreading across controllers.
 
