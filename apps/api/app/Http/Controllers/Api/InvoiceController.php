@@ -40,7 +40,7 @@ class InvoiceController extends Controller
 
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        $invoice = $this->invoices->create(CreateInvoiceData::fromRequest($request));
+        $invoice = $this->invoices->create(CreateInvoiceData::fromArray($request->validated()));
 
         return (new InvoiceResource($invoice))
             ->response()
@@ -50,7 +50,7 @@ class InvoiceController extends Controller
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): InvoiceResource
     {
         return new InvoiceResource(
-            $this->invoices->update($invoice, UpdateInvoiceData::fromRequest($request))
+            $this->invoices->update($invoice, UpdateInvoiceData::fromArray($request->validated()))
         );
     }
 }

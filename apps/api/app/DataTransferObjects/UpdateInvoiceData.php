@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\DataTransferObjects;
 
-use App\Http\Requests\UpdateInvoiceRequest;
 use Carbon\CarbonImmutable;
 
 final readonly class UpdateInvoiceData
@@ -16,12 +15,15 @@ final readonly class UpdateInvoiceData
     ) {
     }
 
-    public static function fromRequest(UpdateInvoiceRequest $request): self
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public static function fromArray(array $payload): self
     {
         return new self(
-            netAmount: (string) $request->string('net_amount'),
-            vatAmount: (string) $request->string('vat_amount'),
-            dueDate:   CarbonImmutable::parse($request->date('due_date')),
+            netAmount: (string) $payload['net_amount'],
+            vatAmount: (string) $payload['vat_amount'],
+            dueDate:   CarbonImmutable::parse((string) $payload['due_date']),
         );
     }
 }
