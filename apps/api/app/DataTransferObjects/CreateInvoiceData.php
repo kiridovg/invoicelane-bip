@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\DataTransferObjects;
 
-use App\Http\Requests\StoreInvoiceRequest;
 use Carbon\CarbonImmutable;
 
 final readonly class CreateInvoiceData
@@ -18,20 +15,22 @@ final readonly class CreateInvoiceData
         public string $currency,
         public CarbonImmutable $issueDate,
         public CarbonImmutable $dueDate,
-    ) {
-    }
+    ) {}
 
-    public static function fromRequest(StoreInvoiceRequest $request): self
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function fromArray(array $payload): self
     {
         return new self(
-            number:        (string) $request->string('number'),
-            supplierName:  (string) $request->string('supplier_name'),
-            supplierTaxId: (string) $request->string('supplier_tax_id'),
-            netAmount:     (string) $request->string('net_amount'),
-            vatAmount:     (string) $request->string('vat_amount'),
-            currency:      (string) $request->string('currency'),
-            issueDate:     CarbonImmutable::parse($request->date('issue_date')),
-            dueDate:       CarbonImmutable::parse($request->date('due_date')),
+            number: (string) $payload['number'],
+            supplierName: (string) $payload['supplier_name'],
+            supplierTaxId: (string) $payload['supplier_tax_id'],
+            netAmount: (string) $payload['net_amount'],
+            vatAmount: (string) $payload['vat_amount'],
+            currency: (string) $payload['currency'],
+            issueDate: CarbonImmutable::parse((string) $payload['issue_date']),
+            dueDate: CarbonImmutable::parse((string) $payload['due_date']),
         );
     }
 }

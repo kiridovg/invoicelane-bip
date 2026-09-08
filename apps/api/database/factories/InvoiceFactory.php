@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories;
 
 use App\Enums\InvoiceStatus;
@@ -19,19 +17,19 @@ class InvoiceFactory extends Factory
         $vat = round($net * 0.20, 2);
 
         $issueDate = $this->faker->dateTimeBetween('-90 days', 'now');
-        $dueDate   = (clone $issueDate)->modify('+' . $this->faker->numberBetween(7, 45) . ' days');
+        $dueDate = (clone $issueDate)->modify('+'.$this->faker->numberBetween(7, 45).' days');
 
         return [
-            'number'          => 'INV-2026-' . $this->faker->unique()->numberBetween(100, 9999),
-            'supplier_name'   => $this->faker->company(),
+            'number' => 'INV-2026-'.$this->faker->unique()->numberBetween(100, 9999),
+            'supplier_name' => $this->faker->company(),
             'supplier_tax_id' => $this->faker->numerify('##########'),
-            'net_amount'      => $net,
-            'vat_amount'      => $vat,
-            'gross_amount'    => round($net + $vat, 2),
-            'currency'        => 'UAH',
-            'status'          => $this->faker->randomElement(InvoiceStatus::cases()),
-            'issue_date'      => $issueDate,
-            'due_date'        => $dueDate,
+            'net_amount' => $net,
+            'vat_amount' => $vat,
+            'gross_amount' => round($net + $vat, 2),
+            'currency' => 'UAH',
+            'status' => $this->faker->randomElement(InvoiceStatus::cases()),
+            'issue_date' => $issueDate,
+            'due_date' => $dueDate,
         ];
     }
 

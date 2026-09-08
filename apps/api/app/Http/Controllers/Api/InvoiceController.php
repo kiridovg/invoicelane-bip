@@ -1,35 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers\Api;
 
 use App\DataTransferObjects\CreateInvoiceData;
+use App\DataTransferObjects\InvoiceListQuery;
 use App\DataTransferObjects\UpdateInvoiceData;
-use App\Enums\InvoiceStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexInvoiceRequest;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private readonly InvoiceService $invoices)
-    {
-    }
+    public function __construct(private readonly InvoiceService $invoices) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(IndexInvoiceRequest $request): AnonymousResourceCollection
     {
-        $status = InvoiceStatus::tryFrom((string) $request->string('status'));
-
         return InvoiceResource::collection(
-            $this->invoices->list($status, min($request->integer('per_page', 20), 100))
+            $this->invoices->list(InvoiceListQuery::fromArray($request->validated()))
         );
     }
 
@@ -40,7 +34,7 @@ class InvoiceController extends Controller
 
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        $invoice = $this->invoices->create(CreateInvoiceData::fromRequest($request));
+        $invoice = $this->invoices->create(CreateInvoiceData::fromArray($request->validated()));
 
         return (new InvoiceResource($invoice))
             ->response()
@@ -50,7 +44,7 @@ class InvoiceController extends Controller
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): InvoiceResource
     {
         return new InvoiceResource(
-            $this->invoices->update($invoice, UpdateInvoiceData::fromRequest($request))
+            $this->invoices->update($invoice, UpdateInvoiceData::fromArray($request->validated()))
         );
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use App\Enums\InvoiceStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -36,10 +34,10 @@ return new class extends Migration
         });
 
         $constraints = [
-            'invoices_net_positive'     => 'net_amount > 0',
+            'invoices_net_positive' => 'net_amount > 0',
             'invoices_vat_non_negative' => 'vat_amount >= 0',
             'invoices_gross_consistent' => 'gross_amount = net_amount + vat_amount',
-            'invoices_dates_ordered'    => 'due_date >= issue_date',
+            'invoices_dates_ordered' => 'due_date >= issue_date',
         ];
 
         foreach ($constraints as $name => $expression) {
