@@ -25,7 +25,7 @@ class StoreInvoiceRequest extends FormRequest
             'currency'        => ['required', 'string', 'size:3'],
 
             'issue_date'      => ['required', 'date'],
-            'due_date'        => ['required', 'date', 'after_or_equal:issue_date'],
+            'due_date'        => ['required', 'date'],
         ];
     }
 }

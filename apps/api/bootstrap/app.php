@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\DueDateBeforeIssueDateException;
 use App\Exceptions\InvoiceNotEditableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -26,4 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'message' => $e->getMessage(),
             'errors'  => ['status' => [$e->getMessage()]],
         ], Response::HTTP_CONFLICT));
+
+        $exceptions->render(fn (DueDateBeforeIssueDateException $e) => response()->json([
+            'message' => $e->getMessage(),
+            'errors'  => ['due_date' => [$e->getMessage()]],
+        ], Response::HTTP_UNPROCESSABLE_ENTITY));
     })->create();
